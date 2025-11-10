@@ -7,7 +7,8 @@ from dotenv import load_dotenv
 
 # Import your existing components
 from langsmith import Client
-from langchain_openai import ChatOpenAI
+#from langchain_openai import ChatOpenAI
+from langchain_openai import AzureChatOpenAI
 from langgraph.prebuilt import create_react_agent
 from langchain_tableau.tools.simple_datasource_qa import initialize_simple_datasource_qa
 from utilities.prompt import AGENT_SYSTEM_PROMPT
@@ -38,7 +39,16 @@ class ChatResponse(BaseModel):
 # Initialize your agent (same as your original code)
 def setup_agent():
     """Initialize the Tableau LangChain agent"""
-    
+    #AZURE_OPENAI_ENDPOINT='https://cog-ld7sywwt6ldbm.openai.azure.com/'
+    #AZURE_OPENAI_API_KEY='574553528aab4ecab33ab3c75853185a'
+    #AZURE_OPENAI_API_TYPE='azure'
+
+    # Set up your Azure OpenAI connection using regular variables
+    api_key = "574553528aab4ecab33ab3c75853185a"
+    endpoint = "https://cog-ld7sywwt6ldbm.openai.azure.com/"
+    deployment_name = "gpt-4o" # The deployment name set in Azure for your model
+    api_version = "2024-12-01-preview"  # Replace with the correct API version for your Azure setup
+
     # Initialize the Tableau data source tool
     analyze_datasource = initialize_simple_datasource_qa(
         domain=os.environ['TABLEAU_DOMAIN'],
@@ -49,12 +59,22 @@ def setup_agent():
         tableau_api_version=os.environ['TABLEAU_API_VERSION'],
         tableau_user=os.environ['TABLEAU_USER'],
         datasource_luid=os.environ['DATASOURCE_LUID'],
-        tooling_llm_model="gpt-4.1-nano",
-        model_provider="openai"
+        tooling_llm_model="gpt-4",
+        model_provider="azure"
     )
 
     # Create the agent
-    llm = ChatOpenAI(model="gpt-4.1", temperature=0)
+    #llm = ChatOpenAI(model="gpt-4.1", temperature=0)
+    #llm = AzureChatOpenAI(azure_endpoint=AZURE_OPENAI_ENDPOINT,api_key=AZURE_OPENAI_API_KEY, api_version="2024-12-01-preview", model="gpt-4.1", temperature=0)
+    # Initialize the AzureChatOpenAI with your credentials
+    # Use `api_key` instead of specifically `azure_openai_key` if required by the library
+    llm = AzureChatOpenAI(
+        api_key=api_key,
+        azure_endpoint=endpoint,
+        deployment_name=deployment_name,
+        #model_name="gpt-4",  # Ensure this matches your Azure setup if applicable
+        api_version=api_version
+    )
     tools = [analyze_datasource]
 
     return create_react_agent(

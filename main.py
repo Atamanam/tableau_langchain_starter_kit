@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from langsmith import Client
 
 # Langgraph packages
-from langchain_openai import ChatOpenAI
+from langchain_openai import AzureChatOpenAI
 from langgraph.prebuilt import create_react_agent
 from langchain_tableau.tools.simple_datasource_qa import initialize_simple_datasource_qa
 
@@ -32,12 +32,19 @@ analyze_datasource = initialize_simple_datasource_qa(
     tableau_api_version=os.environ['TABLEAU_API_VERSION'],
     tableau_user=os.environ['TABLEAU_USER'],
     datasource_luid=os.environ['DATASOURCE_LUID'],
-    tooling_llm_model="gpt-4.1-nano",
-    model_provider="openai"
+    tooling_llm_model="gpt-4",
+    model_provider="azure"
 )
 
 # Create the agent
-llm = ChatOpenAI(model="gpt-4.1", temperature=0)
+llm = AzureChatOpenAI(
+    api_key=os.environ['AZURE_OPENAI_API_KEY'],
+    azure_endpoint=os.environ['AZURE_OPENAI_ENDPOINT'],
+    deployment_name=os.environ['AZURE_OPENAI_DEPLOYMENT'],
+    api_version=os.environ['AZURE_OPENAI_VERSION'],
+    model="gpt-4",
+    temperature=0
+)
 tools = [analyze_datasource]
 
 TableauLangChain = create_react_agent(
